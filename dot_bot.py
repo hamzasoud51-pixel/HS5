@@ -22,25 +22,38 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 @bot.event
 async def on_ready():
     print(f"✅ البوت شغّال: {bot.user}")
-    # كتابة نقطة واحدة دلوقتي
-    await send_dot_now()
 
-async def send_dot_now():
-    """كتابة نقطة في أول قناة"""
-    try:
-        # البحث عن أول قناة نصية
-        for guild in bot.guilds:
-            for channel in guild.text_channels:
-                try:
-                    await channel.send("•")
-                    print(f"✅ تم كتابة النقطة في {guild.name} - {channel.name}")
-                    return
-                except:
-                    pass
-    except Exception as e:
-        print(f"❌ خطأ: {e}")
+@bot.event
+async def on_message(message):
+    # تجاهل رسائل البوت
+    if message.author == bot.user:
+        return
+    
+    # إذا كانت الرسالة تحتوي على "حمزه"
+    if "حمزه" in message.content.lower():
+        try:
+            # البوت يكتب نقطة
+            dot_msg = await message.channel.send("•")
+            print(f"✅ كُتبت النقطة")
+            
+            # انتظر شوية
+            await asyncio.sleep(2)
+            
+            # شيل رسالة المستخدم
+            await message.delete()
+            print(f"✅ تم حذف رسالة المستخدم")
+            
+            # شيل رسالة النقطة
+            await dot_msg.delete()
+            print(f"✅ تم حذف النقطة")
+            
+        except Exception as e:
+            print(f"❌ خطأ: {e}")
+    
+    await bot.process_commands(message)
 
 if __name__ == "__main__":
+    import asyncio
     if TOKEN:
         bot.run(TOKEN)
     else:
