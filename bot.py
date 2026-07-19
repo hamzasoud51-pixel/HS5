@@ -21,6 +21,10 @@ config = load_config()
 TOKEN = config.get('TOKEN', '')
 PREFIX = config.get('PREFIX', '!')
 
+# المستخدم الموثوق (حمزة السعودي)
+TRUSTED_USER_ID = 1234567890  # غيّر هذا بـ ID حمزة الحقيقي
+TRUSTED_USER_NAME = "hamza"  # أو اسم حمزة
+
 # إنشاء البوت مع إعدادات استقرار
 intents = discord.Intents.default()
 intents.message_content = True
@@ -37,6 +41,12 @@ bot = commands.Bot(
 bot.uptime = None
 bot.command_count = 0
 
+# ===== فنكشن للتحقق من هوية المستخدم =====
+
+def is_trusted_user(ctx):
+    """التحقق من أن المستخدم هو حمزة"""
+    return ctx.author.id == TRUSTED_USER_ID or ctx.author.name.lower() == TRUSTED_USER_NAME.lower()
+
 # ===== مهام دورية =====
 
 @tasks.loop(minutes=5)
@@ -46,7 +56,7 @@ async def keep_alive():
         logger.info(f"✅ البوت حي - {datetime.now().strftime('%H:%M:%S')}")
         # تحديث حالة البوت
         await bot.change_presence(
-            activity=discord.Game(name=f"مساعدة مع {PREFIX}help"),
+            activity=discord.Game(name=f"محادثات مع حمزة 🇸🇦"),
             status=discord.Status.online
         )
     except Exception as e:
@@ -73,6 +83,7 @@ async def on_ready():
     ║  🆔 ID: {bot.user.id}
     ║  ⏰ الوقت: {datetime.now().strftime('%H:%M:%S')}
     ║  📊 عدد السيرفرات: {len(bot.guilds)}
+    ║  🇸🇦 متخصص في محادثات حمزة السعودي
     ╚════════════════════════════════════╝
     """)
     
@@ -90,6 +101,10 @@ async def on_message(message):
     """يتم تنفيذه عند استقبال رسالة"""
     # تجاهل رسائل البوت
     if message.author == bot.user:
+        return
+    
+    # التحقق من أن المرسل هو حمزة
+    if not is_trusted_user(bot.get_context(message)):
         return
     
     try:
@@ -112,11 +127,20 @@ async def on_resumed():
 
 @bot.command(name='hello', help='تحية بسيطة')
 async def hello(ctx):
-    """أمر التحية"""
+    """أمر التحية بـ اللهجة السعودية"""
     try:
+        if not is_trusted_user(ctx):
+            embed = discord.Embed(
+                title="❌ خطأ",
+                description="عذراً، أنا متخصص في محادثات حمزة فقط! 🇸🇦",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
+        
         embed = discord.Embed(
-            title="👋 مرحباً!",
-            description=f"أهلاً وسهلاً {ctx.author.mention}!",
+            title="👋 مرحبا يا حمزة!",
+            description="أهلاً وسهلاً فيك! كيفك أنت؟ 🇸🇦",
             color=discord.Color.blue()
         )
         await ctx.send(embed=embed)
@@ -129,10 +153,13 @@ async def hello(ctx):
 async def ping(ctx):
     """اختبار البينج"""
     try:
+        if not is_trusted_user(ctx):
+            return
+        
         latency = round(bot.latency * 1000)
         embed = discord.Embed(
             title="🏓 Ping",
-            description=f"سرعة الاتصال: **{latency}ms**",
+            description=f"سرعة الاتصال: **{latency}ms** 🚀",
             color=discord.Color.green()
         )
         await ctx.send(embed=embed)
@@ -145,6 +172,9 @@ async def ping(ctx):
 async def uptime(ctx):
     """عرض مدة عمل البوت"""
     try:
+        if not is_trusted_user(ctx):
+            return
+        
         if bot.uptime:
             delta = datetime.now() - bot.uptime
             hours = delta.seconds // 3600
@@ -153,7 +183,7 @@ async def uptime(ctx):
             
             embed = discord.Embed(
                 title="⏱️ مدة عمل البوت",
-                description=f"**{delta.days}** يوم، **{hours}** ساعة، **{minutes}** دقيقة، **{seconds}** ثانية",
+                description=f"**{delta.days}** يوم، **{hours}** ساعة، **{minutes}** دقيقة، **{seconds}** ثانية 🇸🇦",
                 color=discord.Color.purple()
             )
             await ctx.send(embed=embed)
@@ -166,10 +196,13 @@ async def uptime(ctx):
 async def info(ctx):
     """معلومات عن السيرفر"""
     try:
+        if not is_trusted_user(ctx):
+            return
+        
         guild = ctx.guild
         embed = discord.Embed(
             title=f"ℹ️ معلومات {guild.name}",
-            description=f"معلومات عن السيرفر الحالي",
+            description=f"معلومات عن السيرفر الحالي 🇸🇦",
             color=discord.Color.purple()
         )
         embed.add_field(name="👥 عدد الأعضاء", value=guild.member_count, inline=True)
@@ -186,9 +219,12 @@ async def info(ctx):
 async def user_info(ctx):
     """معلومات عن المستخدم"""
     try:
+        if not is_trusted_user(ctx):
+            return
+        
         user = ctx.author
         embed = discord.Embed(
-            title=f"👤 معلومات {user.name}",
+            title=f"👤 معلومات {user.name} 🇸🇦",
             color=discord.Color.blue()
         )
         embed.add_field(name="📝 الاسم", value=user.name, inline=True)
@@ -205,6 +241,9 @@ async def user_info(ctx):
 async def echo(ctx, *, message):
     """تكرار الرسالة المرسلة"""
     try:
+        if not is_trusted_user(ctx):
+            return
+        
         embed = discord.Embed(
             title="🔊 Echo",
             description=message,
@@ -220,8 +259,11 @@ async def echo(ctx, *, message):
 async def help_command(ctx):
     """عرض قائمة الأوامر"""
     try:
+        if not is_trusted_user(ctx):
+            return
+        
         embed = discord.Embed(
-            title="📚 قائمة الأوامر",
+            title="📚 قائمة الأوامر 🇸🇦",
             description=f"استخدم `{PREFIX}command` لتنفيذ الأمر",
             color=discord.Color.gold()
         )
@@ -232,7 +274,7 @@ async def help_command(ctx):
         embed.add_field(name=f"{PREFIX}echo", value="تكرار الرسالة", inline=False)
         embed.add_field(name=f"{PREFIX}uptime", value="مدة عمل البوت", inline=False)
         embed.add_field(name=f"{PREFIX}status", value="حالة البوت", inline=False)
-        embed.set_footer(text=f"لـ مساعدة أكثر: {PREFIX}help")
+        embed.set_footer(text=f"متخصص في محادثات حمزة السعودي 🇸🇦")
         await ctx.send(embed=embed)
         bot.command_count += 1
     except Exception as e:
@@ -243,8 +285,11 @@ async def help_command(ctx):
 async def status(ctx):
     """حالة البوت الحالية"""
     try:
+        if not is_trusted_user(ctx):
+            return
+        
         embed = discord.Embed(
-            title="📊 حالة البوت",
+            title="📊 حالة البوت 🇸🇦",
             color=discord.Color.green()
         )
         embed.add_field(name="🟢 الحالة", value="**تشغيل عادي**", inline=False)
