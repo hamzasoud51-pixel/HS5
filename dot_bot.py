@@ -32,20 +32,9 @@ async def on_message(message):
     # إذا كانت الرسالة تحتوي على "حمزه"
     if "حمزه" in message.content.lower():
         try:
-            # البوت يكتب نقطة
-            dot_msg = await message.channel.send("•")
+            # البوت يكتب نقطة بس
+            await message.channel.send("•")
             print(f"✅ كُتبت النقطة")
-            
-            # انتظر شوية
-            await asyncio.sleep(2)
-            
-            # شيل رسالة المستخدم
-            await message.delete()
-            print(f"✅ تم حذف رسالة المستخدم")
-            
-            # شيل رسالة النقطة
-            await dot_msg.delete()
-            print(f"✅ تم حذف النقطة")
             
         except Exception as e:
             print(f"❌ خطأ: {e}")
@@ -53,7 +42,6 @@ async def on_message(message):
     await bot.process_commands(message)
 
 if __name__ == "__main__":
-    import asyncio
     if TOKEN:
         bot.run(TOKEN)
     else:
